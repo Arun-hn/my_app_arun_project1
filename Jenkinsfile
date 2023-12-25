@@ -2,6 +2,8 @@ pipeline {
     environment {
         dockerimagename = "arunhn/myapp"
         dockerImage = ""
+        registryCredential = 'dockerhublogin'
+        kubeConfigCredential = 'kubernetes'
     }
 
     agent any
@@ -16,15 +18,12 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    dockerImage = docker.build dockerimagename
+                    dockerImage = docker.build(dockerimagename)
                 }
             }
         }
 
         stage('Pushing Image') {
-            environment {
-                registryCredential = 'dockerhublogin'
-            }
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', registryCredential) {
@@ -33,11 +32,12 @@ pipeline {
                 }
             }
         }
+       
 
-        stage('Deploying App to Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    withKubeConfig([credentialsId: 'kubernetes', kubeconfigFileVariable: 'KUBE_CONFIG']) {
+                    withKubeConfig([credentialsId: kubeConfigCredential, kubeconfigFileVariable: 'KUBE_CONFIG']) {
                         sh 'kubectl apply -f your-kubernetes-deployment.yaml'
                     }
                 }
