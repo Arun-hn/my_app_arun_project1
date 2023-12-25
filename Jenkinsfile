@@ -1,7 +1,6 @@
 pipeline {
     environment {
-        dockerimagename = "arunhn/myapp"
-        dockerImage = ""
+        dockerImageName = "arunhn/myapp"
         registryCredential = 'dockerhublogin'
         kubeConfigCredential = 'kubernetes'
     }
@@ -18,7 +17,7 @@ pipeline {
         stage('Build image') {
             steps {
                 script {
-                    dockerImage = docker.build(dockerimagename)
+                    dockerImage = docker.build(dockerImageName)
                 }
             }
         }
@@ -32,13 +31,32 @@ pipeline {
                 }
             }
         }
-       
+
+        stage('Install kubectl') {
+            steps {
+                script {
+                    sh '''
+                        curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+                        chmod +x ./kubectl
+                        mv ./kubectl /usr/local/bin/kubectl
+                    '''
+                }
+            }
+        }
+
+        stage('Verify kubectl') {
+            steps {
+                script {
+                    sh 'kubectl version --client'
+                }
+            }
+        }
 
         stage('Deploy to Kubernetes') {
             steps {
                 script {
                     withKubeConfig([credentialsId: kubeConfigCredential, kubeconfigFileVariable: 'KUBE_CONFIG']) {
-                        sh 'kubectl apply -f your-kubernetes-deployment.yaml'
+                        sh 'kubectl apply --validate=false -f deploymentservice.yaml'
                     }
                 }
             }
