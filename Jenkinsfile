@@ -37,17 +37,8 @@ pipeline {
         stage('Deploying App to Kubernetes') {
             steps {
                 script {
-                   // Install kubectl in a non-privileged directory
-                    sh 'curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl'
-                    sh 'chmod +x ./kubectl'
-                    sh 'mkdir -p $HOME/bin'
-                    sh 'mv ./kubectl $HOME/bin/kubectl'
-
-                    // Update the PATH variable
-                    env.PATH = "$HOME/bin:$PATH"
-                    
-                    withKubeConfig([credentialsId: 'kubernetes']) {
-                        sh 'kubectl apply -f deploymentservice.yml'
+                    withKubeConfig([credentialsId: 'kubernetes', kubeconfigFileVariable: 'KUBE_CONFIG']) {
+                        sh 'kubectl apply -f your-kubernetes-deployment.yaml'
                     }
                 }
             }
