@@ -8,12 +8,12 @@ pipeline {
   agent any
 
   stages {
-
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/Arun-hn/my_app_arun_project1.git'
-      }
-    }
+        stage('Checkout Source') {
+            steps {
+                // Checkout the 'main' branch from the specified Git repository
+                git branch: 'main', url: 'https://github.com/Arun-hn/my_app_arun_project1.git'
+            }
+        }
 
     stage('Build image') {
       steps{
